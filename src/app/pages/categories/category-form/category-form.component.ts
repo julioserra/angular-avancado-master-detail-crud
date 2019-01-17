@@ -41,6 +41,15 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
     this.setPageTitle();
   }
 
+  submitForm(){
+    this.submittingForm = true;
+    if (this.currentAction == "new"){
+      this.createCategory();
+    }else {
+      this.updateCategory();
+    }
+  }
+
   //PRIVATES METHODS
 
   private setCurrentAction(){
@@ -93,6 +102,62 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
       const categoryName = this.category.name || ""
       this.pageTitle = 'Editando Categoria: ' + categoryName
     }
+  }
+
+  private createCategory(){
+    //criando uma categoria nova e atribuindo para ela os valores do cartegoryForm pelo objeto assign.
+    const category: Category = Object.assign(new Category(), this.categoryForm.value);
+
+    this.categoryService.create(category)
+      .subscribe(
+        category => this.actionsForSuccess(category),
+        error => this.actionsForError(error)
+      )
+  }
+
+  private updateCategory(){
+    const category: Category = Object.assign(new Category(), this.categoryForm.value);
+    
+    this.categoryService.update(category)
+    .subscribe(
+      category => this.actionsForSuccess(category),
+      error => this.actionsForError(error)
+    )
+  }
+
+  private actionsForSuccess(category: Category){
+    toastr.success('Solicitação processada com sucesso"');
+
+    //Forçar um recarregamento do componente
+    //skipLocationChange true é para não adicionar este redirecionando ao histórico do navegador.
+    //Saio do nomedosite.com/categories/new
+    //vou para nomedosite.com/categories/
+    //quando terminar o redirecionamento, com o then faço o reredirecionamento para
+    //nomedosite.com/categories/:id/edit
+    // redirect/reload component page
+    this.router.navigateByUrl('categories', {skipLocationChange: true}).then(
+      () => this.router.navigate(['categories', category.id, 'edit'])
+    )
+  }
+
+  private actionsForError(error){
+    toastr.error('Ocorreu um erro ao processar a sua solicitação!');
+
+    this.submittingForm = false;
+
+    //configuração para quando for integrar com um servidor remoto
+   
+    //erro quando não foi processado a entidade, erro do lado da API,
+    //quando o recurso não foi processado com sucesso.
+    if (error.status === 422) {
+      //No caso do servidor Rails retorna o _body, precisando talves
+      //se alterado conforme o retorno de outro servidor, no body irá
+      //conter um array sobre o erro.
+      this.serverErrorMessages = JSON.parse(error._body).errors;
+    } else {
+      this.serverErrorMessages = ['Falha na comunicação com o servidor. Por favor tente mais tarde'];
+    }
+
   }
 
 }
