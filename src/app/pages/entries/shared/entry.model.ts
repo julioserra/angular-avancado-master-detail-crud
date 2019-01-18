@@ -15,7 +15,7 @@ export class Entry {
 
     static types = {
         expense: 'Despesa',
-        renevue: 'Receita'
+        revenue: 'Receita'
     };
 
     //Para verificar se a despesa ou receita
