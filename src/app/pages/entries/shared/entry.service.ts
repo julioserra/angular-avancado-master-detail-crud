@@ -1,3 +1,4 @@
+import { CategoryService } from './../../categories/shared/category.service';
 import { Entry } from './entry.model';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from "@angular/common/http";
@@ -12,7 +13,9 @@ export class EntryService {
 
   private apiPath: string = "api/entries";
 
-  constructor(private http: HttpClient ) { }
+  //NÃO precisa do CategoryService se estiver usando api rest java
+  //esta configuração é somente para o In Memory Web API.
+  constructor(private http: HttpClient, private categoryService: CategoryService ) { }
 
   getAll(): Observable<Entry[]>{
     return this.http.get(this.apiPath).pipe(
@@ -31,6 +34,11 @@ export class EntryService {
 
   }
 
+  /*
+  //Métodos originais, para uso com api rest java,
+  //os outros modificados são pelo motivo de estar
+  //trabalhando InMemory e a categoria não vem preenchida
+  //no mesmo json do Entry.
   create(entry: Entry): Observable<Entry>{
     return this.http.post(this.apiPath, entry).pipe(
       catchError(this.handleError),
@@ -44,6 +52,38 @@ export class EntryService {
     return this.http.put(url, entry).pipe(
       catchError(this.handleError),
       map(() => entry) //para retornar a própria entrada, já que aqui o put não iria retornar nada.
+    )
+  }
+  */
+
+  create(entry: Entry): Observable<Entry>{
+
+    //o flatMap irá juntar os dois observables e um único.
+    return this.categoryService.getById(entry.categoryId).pipe(
+      flatMap(category => {
+        entry.category = category;
+
+        return this.http.post(this.apiPath, entry).pipe(
+          catchError(this.handleError),
+          map(this.jsonDataToEntry)        
+        )
+
+      })
+    )
+  }
+
+  update(entry: Entry): Observable<Entry>{
+    const url = `${this.apiPath}/${entry.id}`;
+
+    return this.categoryService.getById(entry.categoryId).pipe(
+      flatMap(category => {
+        entry.category = category;
+
+        return this.http.put(url, entry).pipe(
+          catchError(this.handleError),
+          map(() => entry) //para retornar a própria entrada, já que aqui o put não iria retornar nada.
+          )
+      })
     )
   }
 
