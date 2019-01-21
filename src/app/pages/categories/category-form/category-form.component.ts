@@ -128,6 +128,11 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
   private actionsForSuccess(category: Category){
     toastr.success('Solicitação processada com sucesso"');
 
+    //Mostrar um snapshot, uma fotografia da árvore de rodas.
+    //console.log(this.route.snapshot.parent);
+    //então para pegar o path Pai:
+    //console.log(this.route.snapshot.parent.url[0].path);
+
     //Forçar um recarregamento do componente
     //skipLocationChange true é para não adicionar este redirecionando ao histórico do navegador.
     //Saio do nomedosite.com/categories/new
