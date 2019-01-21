@@ -14,7 +14,7 @@ export class EntryService extends BaseResourceService<Entry> {
   //NÃO precisa do CategoryService se estiver usando api rest java
   //esta configuração é somente para o In Memory Web API.
   constructor(protected injector: Injector, private categoryService: CategoryService ) {
-    super('api/entries', injector);
+    super('api/entries', injector, Entry.fromJson);//o terceiro parâmetro está passando apenas uma funão e não executando ela.
   }
 
   /*
@@ -69,18 +69,21 @@ export class EntryService extends BaseResourceService<Entry> {
     )
   }
 
-  protected jsonDataToResources(jsonData: any[]): Entry[] {
+  //Não há mais a necessidade desses dois métodos, pois foi melhorado
+  //no base, recebendo assim pela função o objeto correto, não precisando
+  //fazer lá o cast.
+  /*protected jsonDataToResources(jsonData: any[]): Entry[] {
     const entries: Entry[] = [];
 
     jsonData.forEach(element => {
-      const entry = Object.assign(new Entry(), element);
+      const entry = Entry.fromJson(element);
       entries.push(entry);
     });
     return entries;
   }
 
   protected jsonDataToResource(jsonData: any): Entry {
-    return Object.assign(new Entry(), jsonData);
-  }
+    return Entry.fromJson(jsonData);
+  }*/
 
 }

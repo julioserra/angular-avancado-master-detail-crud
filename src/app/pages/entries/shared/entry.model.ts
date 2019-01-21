@@ -21,6 +21,10 @@ export class Entry extends BaseResourceModel {
         revenue: 'Receita'
     };
 
+    static fromJson(jsonData: any): Entry{
+        return Object.assign(new Entry(), jsonData);
+    }
+
     //Para verificar se a despesa ou receita
     //foi paga ou não.
     get paidText(): string {

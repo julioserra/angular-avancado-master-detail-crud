@@ -12,7 +12,11 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
 
     protected http: HttpClient;
 
-    constructor(protected apiPath: string, protected injector: Injector){
+    //passo como parâmento uma função jsonData para emilinar esta reptição
+    //de código nos serviços.
+    constructor(protected apiPath: string, 
+      protected injector: Injector, 
+      protected jsonDataToResourceFn: (jsonData: any) => T){
       //O Injector vai falar para o angular:
       //Angular me dá uma instância de httpcliente para eu poder usar aqui
       //dentro da classe.
@@ -25,8 +29,14 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
 
     getAll(): Observable<T[]>{
         return this.http.get(this.apiPath).pipe(
-          catchError(this.handleError),
-          map(this.jsonDataToResources)
+          //Fazendo o bind this, está passando para o jsonDataToResources
+          //que o this, está sendo a classe que está sendo passada por parâmetro
+          //por exemplo "Entry" e não mais uma instância do MapSubscribe, o que estava
+          //gerando problema, pois no anterior o método reconhecia o this como uma
+          //instância do Map e não do Entry.
+          //map(this.jsonDataToResources),
+          map(this.jsonDataToResources.bind(this)),
+          catchError(this.handleError)
         )
       }
     
@@ -34,16 +44,16 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
         const url = `${this.apiPath}/${id}`;
     
         return this.http.get(url).pipe(
-          catchError(this.handleError),
-          map(this.jsonDataToResource)      
+          map(this.jsonDataToResource.bind(this)),
+          catchError(this.handleError)                
         )
     
       }
     
       create(resource: T): Observable<T>{
         return this.http.post(this.apiPath, resource).pipe(
-          catchError(this.handleError),
-          map(this.jsonDataToResource)        
+          map(this.jsonDataToResource.bind(this)),
+          catchError(this.handleError)                
         )
       }
     
@@ -51,8 +61,8 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
         const url = `${this.apiPath}/${resource.id}`;
     
         return this.http.put(url, resource).pipe(
-          catchError(this.handleError),
-          map(() => resource) //para retornar a própria categoria, já que aqui o put não iria retornar nada.
+          map(() => resource), //para retornar a própria categoria, já que aqui o put não iria retornar nada.
+          catchError(this.handleError)          
         )
       }
     
@@ -60,8 +70,8 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
         const url = `${this.apiPath}/${id}`;
     
         return this.http.delete(url).pipe(
-          catchError(this.handleError),
-          map(() => null)//retornar nulo, não precisa retornar nada.
+          map(() => null), //retornar nulo, não precisa retornar nada.
+          catchError(this.handleError)          
         )
       }
 
@@ -69,12 +79,14 @@ export abstract class BaseResourceService<T extends BaseResourceModel> {
 
     protected jsonDataToResources(jsonData: any[]): T[] {
         const resources: T[] = [];
-        jsonData.forEach(element => resources.push(element as T));
+        jsonData.forEach(
+          element => resources.push( this.jsonDataToResourceFn(element) )
+        );
         return resources;
     }
 
     protected jsonDataToResource(jsonData: any): T {
-        return jsonData as T;
+        return this.jsonDataToResourceFn(jsonData);
     }
 
     protected handleError(error: any): Observable<any> { 

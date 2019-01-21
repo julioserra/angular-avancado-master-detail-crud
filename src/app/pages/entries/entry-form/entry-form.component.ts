@@ -160,7 +160,11 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
 
   private createEntry(){
     //criando uma categoria nova e atribuindo para ela os valores do cartegoryForm pelo objeto assign.
-    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    //Comentar a linha abaixo, pois foi criado outro método no model Entry, assim
+    //elimina a repetição de código e designa para o model instânciar a classe.
+    //const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+
+    const entry: Entry = Entry.fromJson(this.entryForm.value);
 
     this.entryService.create(entry)
       .subscribe(
@@ -170,7 +174,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   }
 
   private updateEntry(){
-    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    const entry: Entry = Entry.fromJson(this.entryForm.value);
     
     this.entryService.update(entry)
     .subscribe(
