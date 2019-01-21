@@ -4,7 +4,7 @@ import { CategoryService } from './../../categories/shared/category.service';
 import { Entry } from './entry.model';
 
 import { Observable, throwError } from "rxjs";
-import { flatMap } from "rxjs/operators";
+import { flatMap, catchError } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -39,8 +39,9 @@ export class EntryService extends BaseResourceService<Entry> {
   }
   */
 
-  create(entry: Entry): Observable<Entry>{
-
+  //Método refatorado com o auxílio de:
+  //setCategoryAndSendToServer
+  /*create(entry: Entry): Observable<Entry>{
     //o flatMap irá juntar os dois observables e um único.
     return this.categoryService.getById(entry.categoryId).pipe(
       flatMap(category => {
@@ -48,25 +49,44 @@ export class EntryService extends BaseResourceService<Entry> {
 
         //Este código é igual ao que está no BaseResourceService,
         //então podemos utilizar o que está no pai com SUPER.
-        /*return this.http.post(this.apiPath, entry).pipe(
-          catchError(this.handleError),
-          map(this.jsonDataToResource)        
-        )*/
+        //return this.http.post(this.apiPath, entry).pipe(
+          //catchError(this.handleError),
+          //map(this.jsonDataToResource)        
+        //)
 
         //Passo meu Entry pronto e configurado.
         return super.create(entry);
-
       })
-    )
+    );
+  }*/
+
+  create(entry: Entry): Observable<Entry>{
+    return this.setCategoryAndSendToServer(entry, super.create.bind(this));
   }
 
   update(entry: Entry): Observable<Entry>{
+    return this.setCategoryAndSendToServer(entry, super.update.bind(this));
+  }
+
+  //Método refatorado com o auxílio de:
+  //setCategoryAndSendToServer
+  /*update(entry: Entry): Observable<Entry>{
     return this.categoryService.getById(entry.categoryId).pipe(
       flatMap(category => {
         entry.category = category;        
         return super.update(entry);
       })
     )
+  }*/
+
+  private setCategoryAndSendToServer(entry: Entry, sendFn: any): Observable<Entry>{
+    return this.categoryService.getById(entry.categoryId).pipe(
+      flatMap(category => {
+        entry.category = category;
+        return sendFn(entry)
+      }),
+      catchError(this.handleError)
+    );
   }
 
   //Não há mais a necessidade desses dois métodos, pois foi melhorado
