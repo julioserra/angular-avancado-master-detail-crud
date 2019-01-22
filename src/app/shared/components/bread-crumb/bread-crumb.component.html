@@ -1,0 +1,21 @@
+<nav class="mb-5">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a routerLink="/">Home</a>
+    </li> 
+
+    <!-- Se o link for o última na hierarquia ele fica como ativo, cor diferente -->
+    <li *ngFor="let item of items" class="breadcrumb-item" [class.active]="isTheLastItem(item)">
+      <!-- Se for o último link, então renderiza diretamente Texto-->
+      <span *ngIf="isTheLastItem(item)">
+        {{ item.text }}
+      </span>
+
+      <!-- Se não for o último link, então renderiza dinamicamente um LINK e Exibe o Texto-->
+      <a *ngIf="!isTheLastItem(item)" [routerLink]="item.link">
+        {{ item.text }}
+      </a>
+    </li>
+   
+  </ol>
+</nav>
