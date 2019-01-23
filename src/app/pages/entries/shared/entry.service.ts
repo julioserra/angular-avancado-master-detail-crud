@@ -4,7 +4,9 @@ import { CategoryService } from './../../categories/shared/category.service';
 import { Entry } from './entry.model';
 
 import { Observable, throwError } from "rxjs";
-import { flatMap, catchError } from "rxjs/operators";
+import { flatMap, catchError, map } from "rxjs/operators";
+
+import * as moment from "moment"
 
 @Injectable({
   providedIn: 'root'
@@ -68,6 +70,16 @@ export class EntryService extends BaseResourceService<Entry> {
     return this.setCategoryAndSendToServer(entry, super.update.bind(this));
   }
 
+  //Método para o Gráfico
+  //Quando for usando o back spring, usar um método que já devolva os
+  //dados filtrados passando os parâmetros para facilitar. assim evitaria o pipe e não usaria
+  //o getAll.
+  getByMonthAndYear(month: number, year: number) : Observable<Entry[]> {
+    return this.getAll().pipe(
+      map(entries => this.filterByMonthAndYear(entries, month, year))
+    )
+  }
+
   //Método refatorado com o auxílio de:
   //setCategoryAndSendToServer
   /*update(entry: Entry): Observable<Entry>{
@@ -87,6 +99,19 @@ export class EntryService extends BaseResourceService<Entry> {
       }),
       catchError(this.handleError)
     );
+  }
+
+  private filterByMonthAndYear(entries: Entry[], month: number, year: number){
+    return entries.filter(entry => {
+      const entryDate = moment(entry.date, "DD/MM/YYYY");
+      const monthMatches = entryDate.month() + 1 == month;
+      const yearMatches = entryDate.year() == year;
+
+      if (monthMatches && yearMatches){
+        return entry;
+      }
+
+    })
   }
 
   //Não há mais a necessidade desses dois métodos, pois foi melhorado
